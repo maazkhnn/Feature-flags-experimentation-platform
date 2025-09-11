@@ -1,0 +1,47 @@
+{
+  "env": "cmes86c690007ppd76we4l6us",
+  "version": 4,
+  "flags": [
+    {
+      "key": "newCheckout",
+      "enabled": true,
+      "rollout": 25,
+      "rules": [
+        {
+          "priority": 1,
+          "variant_percent": {
+            "on": 50,
+            "off": 50
+          },
+          "segment": "proUS"
+        }
+      ],
+      "description": "Roll out new checkout flow"
+    },
+    {
+      "key": "betaSearch",
+      "enabled": true,
+      "rollout": 50,
+      "rules": [],
+      "description": "Try new search"
+    }
+  ],
+  "segments": {
+    "proUS": [
+      {
+        "attr": "country",
+        "op": "eq",
+        "values": [
+          "US"
+        ]
+      },
+      {
+        "attr": "plan",
+        "op": "eq",
+        "values": [
+          "pro"
+        ]
+      }
+    ]
+  }
+}

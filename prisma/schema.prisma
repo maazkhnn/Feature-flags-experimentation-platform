@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+/* USERS: for admin login (MVP) */
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // bcrypt hash
+  role      String   // "admin"
+  createdAt DateTime @default(now())
+}
+
+/* MULTI-TENANCY CORE */
+model Tenant {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  projects  Project[]
+  apiKeys   ApiKey[]
+  createdAt DateTime  @default(now())
+}
+
+model Project {
+  id        String       @id @default(cuid())
+  tenantId  String
+  name      String
+  tenant    Tenant       @relation(fields: [tenantId], references: [id])
+  envs      Environment[]
+}
+
+model Environment {
+  id         String   @id @default(cuid())
+  projectId  String
+  name       String   // "dev" | "stage" | "prod"
+  version    Int      @default(1)
+  sdkKey     String   @unique @default(uuid())
+  settings   Json     @default("{}")            
+  project    Project  @relation(fields: [projectId], references: [id])
+  flags      Flag[]
+  segments   Segment[]
+  audits     AuditLog[]
+}
+
+/* FLAGS + SEGMENTS + RULES */
+model Flag {
+  id          String      @id @default(cuid())
+  envId       String
+  key         String
+  description String?
+  enabled     Boolean     @default(false)
+  rollout     Int         @default(0) // 0..100
+  version     Int         @default(1)
+  updatedBy   String?
+  updatedAt   DateTime    @updatedAt
+  env         Environment @relation(fields: [envId], references: [id])
+  rules       Rule[]
+
+  @@unique([envId, key]) //key is unique inside an environment
+}
+
+model Segment {
+  id        String      @id @default(cuid())
+  envId     String
+  name      String
+  conditions Json
+  env       Environment @relation(fields: [envId], references: [id])
+  @@unique([envId, name])
+}
+
+model Rule {
+  id            String  @id @default(cuid())
+  flagId        String
+  priority      Int
+  segmentName   String? // MVP: reference segment by name to keep it simple
+  variantPercent Json   // e.g. {"on":25,"off":75}
+  flag          Flag    @relation(fields: [flagId], references: [id])
+}
+
+/* AUDIT LOGS */
+model AuditLog {
+  id         String      @id @default(cuid())
+  envId      String
+  actor      String
+  entityType String      // "flag" | "segment"
+  entityId   String
+  action     String      // "create" | "update"
+  diff       Json
+  createdAt  DateTime    @default(now())
+  env        Environment @relation(fields: [envId], references: [id])
+}
+
+/* API KEYS */
+model ApiKey {
+  id          String   @id @default(cuid())
+  tenantId    String
+  keyHash     String
+  rateLimitPM Int      @default(60)
+  createdAt   DateTime @default(now())
+  lastUsedAt  DateTime?
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+}
