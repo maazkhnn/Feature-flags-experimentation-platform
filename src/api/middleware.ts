@@ -26,18 +26,18 @@ export function requireAuth(roles: ('admin'|'guest')[] = ['admin']){
 };
 
 export async function requireSdkKey(req: Request, res: Response, next: NextFunction) {
-  const key = req.header('x-api-key');
-  if (!key) return res.status(401).json({ error: 'Missing x-api-key' });
+    const key = req.header('x-api-key');
+    if (!key) return res.status(401).json({ error: 'Missing x-api-key' });
 
-  const env = await prisma.environment.findFirst({ where: { sdkKey: key } });
-  if (!env) return res.status(401).json({ error: 'Invalid x-api-key' });
+    const env = await prisma.environment.findFirst({ where: { sdkKey: key } });
+    if (!env) return res.status(401).json({ error: 'Invalid x-api-key' });
 
-  if (req.params.envId && req.params.envId !== env.id) {
-    return res.status(403).json({ error: 'Env mismatch' });
-  }
+    if (req.params.envId && req.params.envId !== env.id) {
+        return res.status(403).json({ error: 'Env mismatch' });
+    }
 
-  (req as any).sdk = { envId: env.id, role: 'guest' };
-  next();
+    (req as any).sdk = { envId: env.id, role: 'guest' };
+    next();
 };
 
 
