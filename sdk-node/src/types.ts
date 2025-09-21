@@ -25,5 +25,6 @@ export type ClientOptions = {
     sseUrl: string;
     apiKey?: string;
     attributesProvider?: (reqOrCtx: any) => Attributes;
-    fetchImpl?: typeof fetch; // optional override for tests
+    fetchImpl?: typeof fetch;
+    metricsUrl?: string;
 };

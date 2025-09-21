@@ -33,21 +33,35 @@ export function createClient(opts: ClientOptions) {
         es = new EventSource(opts.sseUrl, esOptions as any);
 
         es.onmessage = async (ev) => {
-        try {
+            try {
             const data = JSON.parse(ev.data || "{}");
             if (typeof data.version === "number") {
-            // re-fetch snapshot on version bumps
-            await loadSnapshot();
-            // (Later: post propagation metrics if we include t_save in SSE)
+                const tServer = typeof data.ts === "number" ? data.ts : null;
+                const t0 = Date.now();
+                await loadSnapshot();
+                const t1 = Date.now();
+
+                // Prefer server-to-client propagation if we got ts; else fall back to fetch time
+                const ms = tServer ? (t1 - tServer) : (t1 - t0);
+
+                // Post a sample if metricsUrl configured
+                if (opts.metricsUrl) {
+                try {
+                    await fetchImpl(opts.metricsUrl, {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ ms }),
+                    });
+                } catch {}
+                }
             }
-        } catch { /* ignore */ }
+            } catch {}
         };
 
         es.onerror = async () => {
-        // Simple backoff reconnect
-        es?.close();
-        await delay(1000);
-        connectSSE();
+            es?.close();
+            await delay(1000);
+            connectSSE();
         };
     }
 
@@ -60,7 +74,6 @@ export function createClient(opts: ClientOptions) {
     function getVariant(flagKey: string, reqOrCtx?: any, fallback: "on" | "off" = "off"): "on" | "off" {
         if (!snapshot) return fallback;
         const attrs = getAttrs(reqOrCtx);
-        // IMPORTANT: userId must be stable across requests for sticky bucketing
         if (!attrs.userId) return fallback;
         return evaluateFlag(snapshot, flagKey, attrs, fallback);
     }

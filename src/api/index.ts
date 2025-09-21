@@ -5,6 +5,7 @@ import { segments } from './segments';
 import { audit } from './audit';
 import { snapshotApi } from './snapshot';
 import { stream } from './stream';
+import { metricsRouter } from "./metrics";
 
 export const api = Router();
 
@@ -15,6 +16,7 @@ api.post('/testing', (req, res) => {
     res.json({ input: req.body})
 });
 
+api.use("/metrics", metricsRouter);
 api.use('/auth', auth);
 api.use('/envs/:envId/flags', flags);
 api.use('/envs/:envId/segments', segments);
