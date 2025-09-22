@@ -5,9 +5,11 @@ const API_ROOT = API.replace(/\/api\/?$/, "");
 
 // Admin (JWT) client
 export const api = axios.create({ baseURL: API });
-
 api.interceptors.request.use((config) => {
-	const token = localStorage.getItem("ff_jwt");
+	const stored = (typeof window !== "undefined") ? localStorage.getItem("ff_jwt") : null;
+	const envToken = import.meta.env.VITE_ADMIN_TOKEN as string | undefined;
+	const token = stored || envToken;
+
 	if (token) {
 		const headers: AxiosRequestHeaders = config.headers ?? {};
 		headers["Authorization"] = `Bearer ${token}`;
@@ -18,21 +20,19 @@ api.interceptors.request.use((config) => {
 
 // SDK (x-api-key) client
 export const sdkApi = axios.create({ baseURL: API });
-
 sdkApi.interceptors.request.use((config) => {
-	const sdkKey = import.meta.env.VITE_SDK_KEY as string | undefined;
-	if (sdkKey) {
-		const headers: AxiosRequestHeaders = config.headers ?? {};
-		headers["x-api-key"] = sdkKey;
-		config.headers = headers;
-	}
+	const headers: AxiosRequestHeaders = config.headers ?? {};
+	const fromEnv = import.meta.env.VITE_SDK_KEY as string | undefined;
+	const fromLS = localStorage.getItem("ff_sdk_key") || undefined;
+	const sdkKey = fromLS || fromEnv;
+	if (sdkKey) headers["x-api-key"] = sdkKey;
+	config.headers = headers;
 	return config;
 });
 
-// Root client (for /metrics, since it's mounted at the server root)
+// Root client (for login or anything mounted at server root)
 export const rootApi = axios.create({ baseURL: API_ROOT });
 
-// Auth helpers
 export async function login(email: string, password: string) {
 	const { data, headers } = await rootApi.post(
 		"/api/auth/login",
