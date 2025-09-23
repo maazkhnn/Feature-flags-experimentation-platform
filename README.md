@@ -44,7 +44,7 @@ designing a multi-tenant control plane, building a **Node.js SDK**, wiring **rea
 flowchart LR
   A[Admin Dashboard / Live Tour] -->|PATCH flags| B(Control Plane API)
   B -->|write snapshot.json| S3[(S3 Bucket)]
-  B -->|SSE /stream {version}| SDK
+  B -->|SSE /stream| SDK
   SDK -->|GET snapshot.json| S3
   SDK -->|evaluate flags| SH[SafeHouse API]
 
