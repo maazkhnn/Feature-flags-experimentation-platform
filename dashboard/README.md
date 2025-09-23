@@ -1,69 +1,40 @@
-# React + TypeScript + Vite
+# Feature Flags Platform – Dashboard (Live Tour)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This folder contains the **React + Vite** frontend that showcases the Feature-Flags platform in action.  
+The dashboard is a **recruiter-facing Live Tour** where you can:
 
-Currently, two official plugins are available:
+* Flip feature flags in real time.
+* Watch the **Server-Sent Events (SSE)** stream update instantly.
+* View SLO badges (avg & p95 propagation).
+* Inspect the **snapshot JSON** stored in **Amazon S3**.
+* Call into the **SafeHouse API** to see client behavior change live.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## ⚡ Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **React 18** + **Vite** (fast dev build)
+- **Tailwind CSS** + **shadcn/ui** for styling and components
+- **Axios** for API calls
+- **TypeScript**
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🔧 Setup & Run Locally
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+```bash
+# 1️⃣ Install dependencies
+pnpm install
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+# 2️⃣ Copy environment variables
+cp .env.example .env
+# Fill in:
+#   VITE_FLAGS_API      -> base URL of the Feature-Flag API (e.g. http://localhost:3000/api)
+#   VITE_FLAGS_ENV_ID   -> ID of the environment to demo
+#   VITE_ADMIN_TOKEN    -> admin JWT for flipping flags in the console
+#   VITE_SAFEHOUSE_BASE_URL -> base URL of the SafeHouse API (e.g. http://localhost:4000)
+#   VITE_SAFEHOUSE_JWT  -> demo JWT for SafeHouse debug endpoints
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+# 3️⃣ Start dev server
+pnpm dev
+# -> http://localhost:5173/tour
